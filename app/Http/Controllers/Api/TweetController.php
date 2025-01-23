@@ -5,57 +5,74 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Tweet;
+// 🔽 追加
+use App\Services\TweetService;
 
 class TweetController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $tweets = Tweet::with('user')->latest()->get();
-        return response()->json($tweets);
-    }
+  // 🔽 追加
+  protected $tweetService;
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'tweet' => 'required|max:255',
-        ]);
-        $tweet = $request->user()->tweets()->create($request->only('tweet'));
-        return response()->json($tweet, 201);
-    }
+  // 🔽 追加
+  public function __construct(TweetService $tweetService)
+  {
+    $this->tweetService = $tweetService;
+  }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Tweet $tweet)
-    {
-        return response()->json($tweet);
-    }
+  /**
+   * Display a listing of the resource.
+   */
+  public function index()
+  {
+    // 🔽 編集
+    $tweets = $this->tweetService->allTweets();
+    return response()->json($tweets);
+  }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Tweet $tweet)
-    {
-        $request->validate([
-            'tweet' => 'required|string|max:255',
-        ]);
-        $tweet->update($request->all());
+  /**
+   * Store a newly created resource in storage.
+   */
+  public function store(Request $request)
+  {
+    $request->validate([
+      'tweet' => 'required|max:255',
+    ]);
 
-        return response()->json($tweet);
-    }
+    // 🔽 編集
+    $tweet = $this->tweetService->createTweet($request);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Tweet $tweet)
-    {
-        $tweet->delete();
-        return response()->json(['message' => 'Tweet deleted successfully']);
-    }
+    return response()->json($tweet, 201);
+  }
+
+  /**
+   * Display the specified resource.
+   */
+  public function show(Tweet $tweet)
+  {
+    return response()->json($tweet);
+  }
+
+  /**
+   * Update the specified resource in storage.
+   */
+  public function update(Request $request, Tweet $tweet)
+  {
+    $request->validate([
+      'tweet' => 'required|string|max:255',
+    ]);
+
+    // 🔽 編集
+    $updatedTweet = $this->tweetService->updateTweet($request, $tweet);
+
+    return response()->json($updatedTweet);
+  }
+  /**
+   * Remove the specified resource from storage.
+   */
+  public function destroy(Tweet $tweet)
+  {
+    // 🔽 編集
+    $this->tweetService->deleteTweet($tweet);
+    return response()->json(['message' => 'Tweet deleted successfully']);
+  }
 }
